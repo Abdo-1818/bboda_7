@@ -1,1257 +1,163 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="title">بحث</title>
-    <style>
-        :root {
-            --bg: #000000;
-            --text: #ffffff;
-            --card-bg: #111111;
-            --card-text: #e0e0e0;
-            --border: #ffffff;
-            --white-bg: #ffffff;
-            --white-text: #000000;
-            --gray-light: #333333;
-            --gray-mid: #888888;
-            --gray-dark: #aaaaaa;
-            --accent: #ffffff;
-            --shadow: 0 4px 24px rgba(255, 255, 255, 0.08);
-            --shadow-lg: 0 12px 40px rgba(255, 255, 255, 0.12);
-            --radius: 20px;
-            --radius-sm: 12px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<title>Calculator</title>
 
-        body {
-            font-family: 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 20px;
-            overflow-x: hidden;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
+<script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.2/lib/browser/math.js"></script>
 
-        #particleCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
+<style>
+/* مهم جدًا */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .container {
-            width: 100%;
-            max-width: 680px;
-            margin: 0 auto;
-            padding: 10px;
-            position: relative;
-            z-index: 1;
-        }
+html, body {
+    width: 100%;
+    height: 100%;
+    height: 100dvh; /* 🔥 الحل الحديث للموبايل */
+    overflow: hidden;
+    background: #000;
+}
 
-        /* Language Toggle */
-        .lang-toggle-wrapper {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 10px;
-        }
-        .lang-toggle-btn {
-            background: transparent;
-            border: 2px solid var(--border);
-            color: var(--text);
-            font-size: 0.9rem;
-            font-weight: 700;
-            padding: 8px 18px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: var(--transition);
-            letter-spacing: 0.5px;
-            font-family: inherit;
-        }
-        .lang-toggle-btn:hover {
-            background: var(--text);
-            color: var(--bg);
-            border-color: var(--text);
-        }
+/* دعم iPhone safe area */
+body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
 
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-top: 10px;
-        }
-        .header .logo-icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 4px;
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            letter-spacing: -1px;
-            color: #ffffff;
-            margin: 0;
-            line-height: 1.2;
-        }
-        .header .subtitle {
-            font-size: 0.9rem;
-            color: #cccccc;
-            font-weight: 400;
-            letter-spacing: 0.5px;
-            margin-top: 8px;
-        }
+/* الكالكوليتر */
+.calculator {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #111;
+}
 
-        /* Search */
-        .search-wrapper {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-            position: relative;
-            flex-wrap: wrap;
-        }
-        .search-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 16px 20px;
-            font-size: 1rem;
-            border: 2.5px solid #ffffff;
-            border-radius: 50px;
-            background: var(--white-bg);
-            color: #000000;
-            outline: none;
-            transition: var(--transition);
-            font-family: inherit;
-            letter-spacing: 0.3px;
-        }
-        .search-input::placeholder {
-            color: #666666;
-            font-size: 0.9rem;
-        }
-        .search-input:focus {
-            border-color: #ffffff;
-            box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.2);
-        }
-        .search-btn {
-            padding: 16px 28px;
-            font-size: 1rem;
-            font-weight: 700;
-            background: #ffffff;
-            color: #000000;
-            border: 2.5px solid #ffffff;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: var(--transition);
-            white-space: nowrap;
-            letter-spacing: 0.3px;
-            font-family: inherit;
-        }
-        .search-btn:hover {
-            background: #e0e0e0;
-            border-color: #e0e0e0;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25);
-        }
-        .search-btn:active {
-            transform: scale(0.96);
-            transition: 0.1s;
-        }
-        .location-btn {
-            padding: 16px 18px;
-            font-size: 1.3rem;
-            background: #ffffff;
-            border: 2.5px solid #ffffff;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: var(--transition);
-            line-height: 1;
-            color: #000000;
-        }
-        .location-btn:hover {
-            background: #e0e0e0;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
-        }
-        .location-btn:active {
-            transform: scale(0.94);
-            transition: 0.1s;
-        }
+/* الشاشة */
+#display {
+    width: 100%;
+    height: 22%;
+    font-size: 8vw;
+    text-align: right;
+    padding: 15px;
+    border: none;
+    background: #000;
+    color: white;
+}
 
-        .loading-indicator {
-            text-align: center;
-            padding: 30px;
-            display: none;
-            color: var(--text);
-        }
-        .loading-indicator.active { display: block; }
-        .spinner {
-            display: inline-block;
-            width: 36px;
-            height: 36px;
-            border: 3px solid #444444;
-            border-top-color: #ffffff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+/* الأزرار */
+.keys {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    padding: 8px;
+}
 
-        .suggestions-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #1a1a1a;
-            border: 2px solid #444;
-            border-radius: 16px;
-            margin-top: 8px;
-            z-index: 100;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            max-height: 280px;
-            overflow-y: auto;
-        }
-        .suggestions-dropdown.active { display: block; }
-        .suggestion-item {
-            padding: 14px 18px;
-            cursor: pointer;
-            color: #e0e0e0;
-            border-bottom: 1px solid #2a2a2a;
-            transition: 0.15s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:hover,
-        .suggestion-item.selected {
-            background: #ffffff;
-            color: #000000;
-        }
-        .suggestion-item .sugg-name { font-weight: 600; font-size: 0.95rem; }
-        .suggestion-item .sugg-details { font-size: 0.75rem; color: #aaaaaa; text-align: end; }
-        .suggestion-item:hover .sugg-details { color: #444444; }
+/* الزرار */
+button {
+    font-size: 5vw;
+    border: none;
+    border-radius: 10px;
+    background: #2a2a2a;
+    color: white;
+}
 
-        .error-box {
-            display: none;
-            background: #111111;
-            border: 2px solid #ffffff;
-            border-radius: var(--radius-sm);
-            padding: 18px 22px;
-            text-align: center;
-            color: #ffffff;
-            font-weight: 600;
-            margin-bottom: 20px;
-            animation: fadeIn 0.4s ease;
-        }
-        .error-box.show { display: block; }
-        .error-box .error-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+button:active {
+    background: #444;
+}
 
-        .weather-container { display: none; animation: fadeIn 0.5s ease; }
-        .weather-container.active { display: block; }
+.op {
+    background: #444;
+}
 
-        .current-weather-card {
-            background: var(--card-bg);
-            color: var(--card-text);
-            border-radius: var(--radius);
-            padding: 30px 26px 26px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid #333333;
-        }
-        .current-weather-card::before {
-            content: '';
-            position: absolute;
-            top: -40px;
-            right: -40px;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.02);
-            pointer-events: none;
-        }
-        .current-weather-card::after {
-            content: '';
-            position: absolute;
-            bottom: -30px;
-            left: -30px;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.01);
-            pointer-events: none;
-        }
-        .current-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 16px;
-            position: relative;
-            z-index: 1;
-        }
-        .city-info h2 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin: 0;
-            color: #ffffff;
-            letter-spacing: -0.3px;
-        }
-        .city-info .date-text { font-size: 0.85rem; color: #aaaaaa; margin-top: 2px; }
-        .city-info .weather-desc { font-size: 0.95rem; color: #cccccc; margin-top: 4px; font-weight: 500; }
-        .city-info .coord-text { font-size: 0.7rem; color: #777777; margin-top: 2px; font-family: monospace; }
-        .weather-icon-large {
-            font-size: 72px;
-            line-height: 1;
-            position: relative;
-            z-index: 1;
-            filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
-            animation: iconPulse 4s ease-in-out infinite;
-        }
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-        .temp-big {
-            font-size: 4.5rem;
-            font-weight: 900;
-            letter-spacing: -2px;
-            line-height: 1;
-            color: #ffffff;
-            position: relative;
-            z-index: 1;
-            margin: 8px 0 4px;
-        }
-        .temp-big .degree {
-            font-size: 2.5rem;
-            vertical-align: super;
-            font-weight: 600;
-            margin-left: -4px;
-        }
-        .feels-like { font-size: 0.9rem; color: #bbbbbb; position: relative; z-index: 1; margin-bottom: 14px; }
-        .details-row { display: flex; gap: 16px; flex-wrap: wrap; position: relative; z-index: 1; }
-        .detail-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            flex: 1;
-            min-width: 80px;
-            text-align: center;
-            backdrop-filter: blur(4px);
-            border: 1px solid #222222;
-        }
-        .detail-item .detail-icon { font-size: 1.4rem; display: block; margin-bottom: 2px; }
-        .detail-item .detail-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #999999; }
-        .detail-item .detail-value { font-size: 1.1rem; font-weight: 700; color: #ffffff; }
-
-        .section-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 14px; }
-        .section-divider .line { flex: 1; height: 1px; background: #555555; }
-        .section-divider span {
-            font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #cccccc;
-            white-space: nowrap;
-        }
-
-        .hourly-forecast {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding: 8px 4px 16px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: #666666 transparent;
-        }
-        .hourly-forecast::-webkit-scrollbar { height: 4px; }
-        .hourly-forecast::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
-        .hourly-forecast::-webkit-scrollbar-thumb { background: #666666; border-radius: 10px; }
-        .hourly-card {
-            flex: 0 0 auto;
-            min-width: 78px;
-            background: #1a1a1a;
-            border: 2px solid #444444;
-            border-radius: var(--radius-sm);
-            padding: 14px 10px;
-            text-align: center;
-            transition: var(--transition);
-            cursor: default;
-            position: relative;
-            color: #ffffff;
-        }
-        .hourly-card:hover {
-            border-color: #ffffff;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 22px rgba(255, 255, 255, 0.1);
-            z-index: 2;
-        }
-        .hourly-card.now {
-            border-color: #ffffff;
-            background: #ffffff;
-            color: #000000;
-            box-shadow: 0 6px 18px rgba(255, 255, 255, 0.3);
-        }
-        .hourly-card.now .hourly-time { color: #000000; }
-        .hourly-card.now .hourly-temp { color: #000000; }
-        .hourly-card.now .hourly-humidity { color: #222222; }
-        .hourly-card .hourly-time { font-size: 0.78rem; font-weight: 600; color: #cccccc; margin-bottom: 4px; letter-spacing: 0.2px; }
-        .hourly-card .hourly-icon { font-size: 2rem; display: block; margin: 4px 0; }
-        .hourly-card .hourly-temp { font-size: 1.15rem; font-weight: 700; color: #ffffff; }
-        .hourly-card .hourly-humidity { font-size: 0.7rem; color: #aaaaaa; margin-top: 2px; }
-        .badge-now {
-            display: inline-block;
-            font-size: 0.6rem;
-            font-weight: 700;
-            background: #000000;
-            color: #ffffff;
-            padding: 2px 8px;
-            border-radius: 20px;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-        .hourly-card.now .badge-now { background: #000000; color: #ffffff; }
-
-        .sun-row { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-        .sun-item {
-            flex: 1;
-            background: #1a1a1a;
-            border: 2px solid #444444;
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            text-align: center;
-            min-width: 100px;
-            color: #ffffff;
-        }
-        .sun-item .sun-icon { font-size: 1.8rem; }
-        .sun-item .sun-label { font-size: 0.7rem; letter-spacing: 1px; color: #aaaaaa; text-transform: uppercase; }
-        .sun-item .sun-time { font-size: 1rem; font-weight: 700; color: #ffffff; }
-
-        @media (max-width: 480px) {
-            .header h1 { font-size: 2rem; }
-            .temp-big { font-size: 3.5rem; }
-            .weather-icon-large { font-size: 56px; }
-            .search-input { padding: 14px 16px; font-size: 0.9rem; }
-            .search-btn { padding: 14px 20px; font-size: 0.9rem; }
-            .location-btn { padding: 14px 14px; font-size: 1.1rem; }
-            .current-weather-card { padding: 22px 16px 18px; }
-            .details-row { gap: 8px; }
-            .detail-item { padding: 10px 8px; min-width: 60px; }
-            .hourly-card { min-width: 65px; padding: 10px 7px; }
-            .hourly-card .hourly-icon { font-size: 1.5rem; }
-            .hourly-card .hourly-temp { font-size: 1rem; }
-        }
-    </style>
+.equal {
+    background: blue;
+    grid-column: span 2;
+}
+</style>
 </head>
-<body oncontextmenu="return false;" ondragstart="return false;" onselectstart="return false;" oncopy="return false;" oncut="return false;">
-    <canvas id="particleCanvas"></canvas>
 
-    <div class="container">
-        <div class="lang-toggle-wrapper">
-            <button class="lang-toggle-btn" id="langToggleBtn" data-i18n="lang_toggle">English</button>
-        </div>
+<body>
 
-        <div class="header">
-            <span class="logo-icon">🔍</span>
-            <h1 data-i18n="header_title">بحث</h1>
-            <p class="subtitle" data-i18n="header_subtitle">ابحث عن الطقس من هنا</p>
-        </div>
+<div class="calculator">
 
-        <div class="search-wrapper" style="position: relative;">
-            <input
-            type="text"
-            class="search-input"
-            id="searchInput"
-            data-i18n-placeholder="search_placeholder"
-            placeholder="ابحث عن الطقس من هنا"
-            autocomplete="off"
-            />
-            <button class="search-btn" id="searchBtn" title="بحث" data-i18n="search_btn">بحث</button>
-            <button class="location-btn" id="locationBtn" title="موقعي الحالي">📍</button>
-            <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
-        </div>
+<input id="display" disabled>
 
-        <div class="loading-indicator" id="loadingIndicator">
-            <div class="spinner"></div>
-            <p style="margin-top:10px;color:#cccccc;font-weight:500;" data-i18n="loading_text">جاري تحميل بيانات الطقس...</p>
-        </div>
+<div class="keys">
 
-        <div class="error-box" id="errorBox">
-            <span class="error-icon">⚠️</span>
-            <span id="errorText" data-i18n="error_default">تعذر العثور على الموقع. حاول مجدداً.</span>
-        </div>
+<button onclick="append('9')">9</button>
+<button onclick="append('8')">8</button>
+<button onclick="append('7')">7</button>
+<button class="op" onclick="append('+')">+</button>
+<button onclick="clearAll()">C</button>
 
-        <div class="weather-container" id="weatherContainer">
-            <div class="current-weather-card">
-                <div class="current-top">
-                    <div class="city-info">
-                        <h2 id="cityName">--</h2>
-                        <p class="date-text" id="dateText">--</p>
-                        <p class="weather-desc" id="weatherDesc">--</p>
-                        <p class="coord-text" id="coordText">--</p>
-                    </div>
-                    <div class="weather-icon-large" id="weatherIconLarge">--</div>
-                </div>
-                <div class="temp-big">
-                    <span id="tempBig">--</span><span class="degree">°</span>
-                </div>
-                <p class="feels-like" id="feelsLike">--</p>
-                <div class="details-row">
-                    <div class="detail-item">
-                        <span class="detail-icon">💧</span>
-                        <span class="detail-label" data-i18n="humidity_label">الرطوبة</span>
-                        <span class="detail-value" id="humidityValue">--</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-icon">💨</span>
-                        <span class="detail-label" data-i18n="wind_label">الرياح</span>
-                        <span class="detail-value" id="windValue">--</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-icon">📊</span>
-                        <span class="detail-label" data-i18n="pressure_label">الضغط</span>
-                        <span class="detail-value" id="pressureValue">--</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-icon">👁️</span>
-                        <span class="detail-label" data-i18n="visibility_label">الرؤية</span>
-                        <span class="detail-value" id="visibilityValue">--</span>
-                    </div>
-                </div>
-            </div>
+<button onclick="append('6')">6</button>
+<button onclick="append('5')">5</button>
+<button onclick="append('4')">4</button>
+<button class="op" onclick="append('-')">-</button>
+<button onclick="backspace()">⌫</button>
 
-            <div class="sun-row">
-                <div class="sun-item">
-                    <span class="sun-icon">🌅</span>
-                    <span class="sun-label" data-i18n="sunrise_label">شروق الشمس</span>
-                    <span class="sun-time" id="sunriseTime">--</span>
-                </div>
-                <div class="sun-item">
-                    <span class="sun-icon">🌇</span>
-                    <span class="sun-label" data-i18n="sunset_label">غروب الشمس</span>
-                    <span class="sun-time" id="sunsetTime">--</span>
-                </div>
-            </div>
+<button onclick="append('3')">3</button>
+<button onclick="append('2')">2</button>
+<button onclick="append('1')">1</button>
+<button class="op" onclick="append('*')">*</button>
+<button class="op" onclick="append('/')">/</button>
 
-            <div class="section-divider">
-                <div class="line"></div>
-                <span data-i18n="forecast_title">📋 توقعات اليوم</span>
-                <div class="line"></div>
-            </div>
-            <div class="hourly-forecast" id="hourlyForecast"></div>
-        </div>
-    </div>
+<button onclick="append('0')">0</button>
+<button onclick="append('.')">.</button>
+<button onclick="append('(')">(</button>
+<button onclick="append(')')">)</button>
+<button class="op" onclick="append('^')">^</button>
 
-    <script>
-        (function() {
-            // ============ i18n ============
-            const translations = {
-                ar: {
-                    title: 'بحث',
-                    lang_toggle: 'English',
-                    header_title: 'بحث',
-                    header_subtitle: 'ابحث عن الطقس من هنا',
-                    search_placeholder: 'ابحث عن الطقس من هنا',
-                    search_btn: 'بحث',
-                    loading_text: 'جاري تحميل بيانات الطقس...',
-                    error_default: 'تعذر العثور على الموقع. حاول مجدداً.',
-                    feels_like: 'الإحساس كأنها',
-                    humidity_label: 'الرطوبة',
-                    wind_label: 'الرياح',
-                    pressure_label: 'الضغط',
-                    visibility_label: 'الرؤية',
-                    sunrise_label: 'شروق الشمس',
-                    sunset_label: 'غروب الشمس',
-                    forecast_title: '📋 توقعات اليوم',
-                    now_badge: 'الآن',
-                    wind_unit: 'كم/س',
-                    pressure_unit: 'hPa',
-                    visibility_km: 'كم',
-                    visibility_m: 'م',
-                    error_api_key: 'مفتاح API غير صالح أو غير مفعّل.',
-                    error_city_not_found: 'الموقع غير موجود. جرب إضافة اسم الدولة أو استخدم الإحداثيات.',
-                    error_rate_limit: 'تم تجاوز حد الطلبات. حاول لاحقاً.',
-                    error_network: 'تعذر الاتصال بخدمة الطقس.',
-                    error_forecast: 'تعذر تحميل التوقعات.',
-                    error_geolocation_denied: 'تم رفض الإذن للوصول إلى الموقع.',
-                    error_geolocation_timeout: 'انتهت مهلة تحديد الموقع.',
-                    error_geolocation_not_supported: 'متصفحك لا يدعم تحديد الموقع.',
-                    error_geolocation_general: 'تعذر الوصول لموقعك.',
-                    error_coords_invalid: 'الإحداثيات غير صالحة.',
-                },
-                en: {
-                    title: 'Search',
-                    lang_toggle: 'العربية',
-                    header_title: 'Search',
-                    header_subtitle: 'Search weather from here',
-                    search_placeholder: 'Search weather from here',
-                    search_btn: 'Search',
-                    loading_text: 'Loading weather data...',
-                    error_default: 'Location not found. Try again.',
-                    feels_like: 'Feels like',
-                    humidity_label: 'Humidity',
-                    wind_label: 'Wind',
-                    pressure_label: 'Pressure',
-                    visibility_label: 'Visibility',
-                    sunrise_label: 'Sunrise',
-                    sunset_label: 'Sunset',
-                    forecast_title: "📋 Today's Forecast",
-                    now_badge: 'Now',
-                    wind_unit: 'km/h',
-                    pressure_unit: 'hPa',
-                    visibility_km: 'km',
-                    visibility_m: 'm',
-                    error_api_key: 'Invalid API key.',
-                    error_city_not_found: 'Location not found.',
-                    error_rate_limit: 'Request limit exceeded.',
-                    error_network: 'Unable to connect.',
-                    error_forecast: 'Unable to load forecast.',
-                    error_geolocation_denied: 'Location permission denied.',
-                    error_geolocation_timeout: 'Location request timed out.',
-                    error_geolocation_not_supported: 'Geolocation not supported.',
-                    error_geolocation_general: 'Could not access location.',
-                    error_coords_invalid: 'Invalid coordinates.',
-                }
-            };
+<button onclick="append('sin(')">sin</button>
+<button onclick="append('cos(')">cos</button>
+<button onclick="append('tan(')">tan</button>
+<button onclick="append('sqrt(')">√</button>
+<button onclick="append('log10(')">log</button>
 
-            let currentLang = 'ar';
-            function t(key) { return translations[currentLang][key] || key; }
+<button onclick="append('log(')">ln</button>
+<button class="equal" onclick="calculate()">=</button>
 
-            function updateLanguageUI() {
-                document.documentElement.lang = currentLang;
-                document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (translations[currentLang][key]) {
-                        el.textContent = translations[currentLang][key];
-                    }
-                });
-                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                    const key = el.getAttribute('data-i18n-placeholder');
-                    if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
-                });
-                const searchBtn = document.getElementById('searchBtn');
-                if (searchBtn) searchBtn.title = t('search_btn');
-                const locationBtn = document.getElementById('locationBtn');
-                if (locationBtn) locationBtn.title = currentLang === 'ar' ? 'موقعي الحالي' : 'My location';
-                if (lastWeatherData) {
-                    renderCurrentWeather(lastWeatherData.current, lastWeatherData.timezoneOffset, lastWeatherData.coords);
-                    renderHourlyForecast(lastWeatherData.forecastList, lastWeatherData.timezoneOffset);
-                }
-            }
+</div>
 
-            const langToggleBtn = document.getElementById('langToggleBtn');
-            langToggleBtn.addEventListener('click', () => {
-                currentLang = currentLang === 'ar' ? 'en' : 'ar';
-                updateLanguageUI();
-            });
+</div>
 
-            // ============ DOM Elements ============
-            const searchInput = document.getElementById('searchInput');
-            const searchBtn = document.getElementById('searchBtn');
-            const locationBtn = document.getElementById('locationBtn');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const errorBox = document.getElementById('errorBox');
-            const errorText = document.getElementById('errorText');
-            const weatherContainer = document.getElementById('weatherContainer');
-            const suggestionsDropdown = document.getElementById('suggestionsDropdown');
-            const cityNameEl = document.getElementById('cityName');
-            const dateTextEl = document.getElementById('dateText');
-            const weatherDescEl = document.getElementById('weatherDesc');
-            const coordTextEl = document.getElementById('coordText');
-            const weatherIconLargeEl = document.getElementById('weatherIconLarge');
-            const tempBigEl = document.getElementById('tempBig');
-            const feelsLikeEl = document.getElementById('feelsLike');
-            const humidityValueEl = document.getElementById('humidityValue');
-            const windValueEl = document.getElementById('windValue');
-            const pressureValueEl = document.getElementById('pressureValue');
-            const visibilityValueEl = document.getElementById('visibilityValue');
-            const sunriseTimeEl = document.getElementById('sunriseTime');
-            const sunsetTimeEl = document.getElementById('sunsetTime');
-            const hourlyForecastEl = document.getElementById('hourlyForecast');
+<script>
+let display = document.getElementById("display");
 
-            // ============ API Configuration ============
-            const API_KEY = 'bf171ffd0c84b0265385a520f3d7178c';
-            const BASE_URL_CURRENT = 'https://api.openweathermap.org/data/2.5/weather';
-            const BASE_URL_FORECAST = 'https://api.openweathermap.org/data/2.5/forecast';
-            const GEO_URL = 'https://api.openweathermap.org/geo/1.0/direct';
-            const REVERSE_GEO_URL = 'https://api.openweathermap.org/geo/1.0/reverse';
+math.config({
+    number: 'BigNumber',
+    precision: 64
+});
 
-            let lastWeatherData = null;
-            let suggestionTimeout = null;
-            let selectedSuggestionIndex = -1;
-            let currentSuggestions = [];
+function append(v) {
+    display.value += v;
+}
 
-            // ============ Weather Icons ============
-            function getWeatherEmoji(weatherId) {
-                if (weatherId >= 200 && weatherId < 300) return '⛈️';
-                if (weatherId >= 300 && weatherId < 400) return '🌦️';
-                if (weatherId >= 500 && weatherId < 600) return '🌧️';
-                if (weatherId >= 600 && weatherId < 700) return '❄️';
-                if (weatherId >= 700 && weatherId < 800) return '🌫️';
-                if (weatherId === 800) return '☀️';
-                if (weatherId === 801) return '🌤️';
-                if (weatherId === 802) return '⛅';
-                if (weatherId >= 803 && weatherId <= 804) return '☁️';
-                return '🌡️';
-            }
-            function getWeatherEmojiSimple(weatherId) {
-                if (weatherId >= 200 && weatherId < 300) return '⛈️';
-                if (weatherId >= 300 && weatherId < 600) return '🌧️';
-                if (weatherId >= 600 && weatherId < 700) return '❄️';
-                if (weatherId >= 700 && weatherId < 800) return '🌫️';
-                if (weatherId === 800) return '☀️';
-                if (weatherId === 801) return '🌤️';
-                if (weatherId >= 802 && weatherId <= 804) return '☁️';
-                return '🌡️';
-            }
+function clearAll() {
+    display.value = "";
+}
 
-            // ============ Helpers ============
-            function formatTime(timestamp, timezoneOffset) {
-                const localTime = new Date((timestamp + timezoneOffset) * 1000);
-                const hours = localTime.getUTCHours();
-                const minutes = localTime.getUTCMinutes();
-                const h = hours % 12 || 12;
-                const ampm = hours >= 12 ? (currentLang === 'ar' ? 'م' : 'PM') : (currentLang === 'ar' ? 'ص' : 'AM');
-                return `${h}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-            }
-            function formatTime24(timestamp, timezoneOffset) {
-                const localTime = new Date((timestamp + timezoneOffset) * 1000);
-                const hours = localTime.getUTCHours();
-                const minutes = localTime.getUTCMinutes();
-                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            }
-            function formatDate(timestamp, timezoneOffset) {
-                const localTime = new Date((timestamp + timezoneOffset) * 1000);
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                return currentLang === 'ar' ? localTime.toLocaleDateString('ar-SA', options) : localTime.toLocaleDateString('en-US', options);
-            }
-            function showLoading() {
-                loadingIndicator.classList.add('active');
-                errorBox.classList.remove('show');
-                weatherContainer.classList.remove('active');
-                suggestionsDropdown.classList.remove('active');
-            }
-            function hideLoading() { loadingIndicator.classList.remove('active'); }
-            function showError(messageKey) {
-                const msg = translations[currentLang][messageKey] || translations[currentLang].error_default || messageKey;
-                errorText.textContent = msg;
-                errorBox.classList.add('show');
-                weatherContainer.classList.remove('active');
-                hideLoading();
-            }
-            function hideError() { errorBox.classList.remove('show'); }
-            function showWeather() {
-                weatherContainer.classList.add('active');
-                hideLoading();
-                hideError();
-            }
+function backspace() {
+    display.value = display.value.slice(0, -1);
+}
 
-            function isCoordinates(input) {
-                const trimmed = input.trim();
-                return /^[-]?\d{1,3}\.\d{1,10},\s*[-]?\d{1,3}\.\d{1,10}$/.test(trimmed) || /^[-]?\d+\.?\d*,\s*[-]?\d+\.?\d*$/.test(trimmed);
-            }
-            function parseCoordinates(input) {
-                const parts = input.trim().split(/[\s,]+/);
-                if (parts.length >= 2) {
-                    const lat = parseFloat(parts[0]);
-                    const lon = parseFloat(parts[1]);
-                    if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-                        return { lat, lon };
-                    }
-                }
-                return null;
-            }
+function calculate() {
+    try {
+        let result = math.evaluate(display.value);
+        display.value = result.toString();
+    } catch {
+        display.value = "Error";
+    }
+}
+</script>
 
-            async function reverseGeocode(lat, lon) {
-                try {
-                    const url = `${REVERSE_GEO_URL}?lat=${lat}&lon=${lon}&limit=3&appid=${API_KEY}`;
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data && data.length > 0) {
-                            const loc = data[0];
-                            const name = loc.local_names?.[currentLang] || loc.name || '';
-                            const country = loc.country || '';
-                            const state = loc.state || '';
-                            const parts = [name, state, country].filter(Boolean);
-                            return parts.join('، ');
-                        }
-                    }
-                } catch (e) {}
-                return null;
-            }
-
-            async function getCoordinatesWithSuggestions(query) {
-                const url = `${GEO_URL}?q=${encodeURIComponent(query)}&limit=8&appid=${API_KEY}`;
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('error_network');
-                const data = await response.json();
-                if (!data || data.length === 0) throw new Error('error_city_not_found');
-                return data.map(item => ({
-                    lat: item.lat,
-                    lon: item.lon,
-                    name: item.local_names?.[currentLang] || item.name || query,
-                    country: item.country || '',
-                    state: item.state || '',
-                    displayName: buildDisplayName(item, query),
-                }));
-            }
-            function buildDisplayName(item, query) {
-                const name = item.local_names?.[currentLang] || item.name || query;
-                const state = item.state || '';
-                const country = item.country || '';
-                const parts = [name];
-                if (state && state !== name) parts.push(state);
-                if (country) parts.push(country);
-                return parts.join('، ');
-            }
-            async function fetchSuggestions(query) {
-                if (query.length < 2) {
-                    suggestionsDropdown.classList.remove('active');
-                    currentSuggestions = [];
-                    return;
-                }
-                try {
-                    const url = `${GEO_URL}?q=${encodeURIComponent(query)}&limit=7&appid=${API_KEY}`;
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const data = await response.json();
-                        currentSuggestions = data.map(item => ({
-                            lat: item.lat,
-                            lon: item.lon,
-                            name: item.local_names?.[currentLang] || item.name || query,
-                            country: item.country || '',
-                            state: item.state || '',
-                            displayName: buildDisplayName(item, query),
-                        }));
-                        renderSuggestions();
-                    } else {
-                        currentSuggestions = [];
-                        suggestionsDropdown.classList.remove('active');
-                    }
-                } catch (e) {
-                    currentSuggestions = [];
-                    suggestionsDropdown.classList.remove('active');
-                }
-            }
-            function renderSuggestions() {
-                if (currentSuggestions.length === 0) {
-                    suggestionsDropdown.classList.remove('active');
-                    return;
-                }
-                selectedSuggestionIndex = -1;
-                suggestionsDropdown.innerHTML = '';
-                currentSuggestions.forEach((sugg, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerHTML = `<span class="sugg-name">📍 ${sugg.displayName}</span><span class="sugg-details">${sugg.lat.toFixed(4)}, ${sugg.lon.toFixed(4)}</span>`;
-                    div.addEventListener('click', () => selectSuggestion(index));
-                    suggestionsDropdown.appendChild(div);
-                });
-                suggestionsDropdown.classList.add('active');
-            }
-            function selectSuggestion(index) {
-                if (index < 0 || index >= currentSuggestions.length) return;
-                const sugg = currentSuggestions[index];
-                searchInput.value = sugg.displayName;
-                suggestionsDropdown.classList.remove('active');
-                currentSuggestions = [];
-                fetchWeatherByCoords(sugg.lat, sugg.lon, sugg.displayName);
-            }
-
-            async function fetchWeatherByCity(cityName) {
-                showLoading();
-                try {
-                    const coordsList = await getCoordinatesWithSuggestions(cityName);
-                    if (coordsList.length === 1) {
-                        await fetchWeatherByCoords(coordsList[0].lat, coordsList[0].lon, coordsList[0].displayName);
-                    } else {
-                        currentSuggestions = coordsList;
-                        renderSuggestions();
-                        hideLoading();
-                        if (coordsList.length > 0) {
-                            errorText.textContent = currentLang === 'ar' ? 'تم العثور على عدة نتائج. اختر من القائمة:' : 'Multiple results found. Choose from the list:';
-                            errorBox.classList.add('show');
-                        }
-                    }
-                } catch (error) {
-                    showError(error.message || 'error_default');
-                }
-            }
-            async function fetchWeatherByCoords(lat, lon, locationName = null) {
-                showLoading();
-                suggestionsDropdown.classList.remove('active');
-                currentSuggestions = [];
-                try {
-                    const currentUrl = `${BASE_URL_CURRENT}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${currentLang}`;
-                    const currentResponse = await fetch(currentUrl);
-                    if (!currentResponse.ok) {
-                        if (currentResponse.status === 401) throw new Error('error_api_key');
-                        else if (currentResponse.status === 429) throw new Error('error_rate_limit');
-                        else if (currentResponse.status === 404) throw new Error('error_city_not_found');
-                        else throw new Error('error_network');
-                    }
-                    const currentData = await currentResponse.json();
-                    const forecastUrl = `${BASE_URL_FORECAST}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${currentLang}`;
-                    const forecastResponse = await fetch(forecastUrl);
-                    if (!forecastResponse.ok) throw new Error('error_forecast');
-                    const forecastData = await forecastResponse.json();
-                    processAndDisplay(currentData, forecastData, { lat, lon, locationName });
-                    showWeather();
-                    setTimeout(() => hourlyForecastEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200);
-                } catch (error) {
-                    showError(error.message || 'error_default');
-                }
-            }
-
-            function processAndDisplay(currentData, forecastData, coords) {
-                const timezoneOffset = currentData.timezone;
-                const forecastList = forecastData.list || [];
-                lastWeatherData = { current: currentData, forecastList, timezoneOffset, coords };
-                renderCurrentWeather(currentData, timezoneOffset, coords);
-                renderHourlyForecast(forecastList, timezoneOffset);
-            }
-
-            function renderCurrentWeather(currentData, timezoneOffset, coords) {
-                const apiCityName = currentData.name || '';
-                const country = currentData.sys?.country || '';
-                let fullCityName;
-                if (coords && coords.locationName && coords.locationName.trim().length > 0) {
-                    fullCityName = coords.locationName;
-                    if (country && !coords.locationName.includes(country)) fullCityName += '، ' + country;
-                } else if (apiCityName) {
-                    fullCityName = country ? `${apiCityName}، ${country}` : apiCityName;
-                } else if (coords) {
-                    fullCityName = `${coords.lat.toFixed(4)}°, ${coords.lon.toFixed(4)}°`;
-                } else {
-                    fullCityName = currentLang === 'ar' ? 'موقع غير معروف' : 'Unknown location';
-                }
-                const dateStr = formatDate(currentData.dt, timezoneOffset);
-                const weatherId = currentData.weather[0]?.id || 800;
-                const weatherDesc = currentData.weather[0]?.description || '--';
-                const temp = Math.round(currentData.main?.temp);
-                const feelsLike = Math.round(currentData.main?.feels_like);
-                const humidity = currentData.main?.humidity;
-                const windSpeed = currentData.wind?.speed;
-                const pressure = currentData.main?.pressure;
-                const visibility = currentData.visibility;
-                const sunrise = currentData.sys?.sunrise;
-                const sunset = currentData.sys?.sunset;
-                const lat = coords ? coords.lat : currentData.coord?.lat;
-                const lon = coords ? coords.lon : currentData.coord?.lon;
-
-                cityNameEl.textContent = fullCityName;
-                dateTextEl.textContent = dateStr;
-                weatherDescEl.textContent = weatherDesc;
-                coordTextEl.textContent = lat && lon ? `📍 ${lat.toFixed(4)}°, ${lon.toFixed(4)}°` : '';
-                weatherIconLargeEl.textContent = getWeatherEmoji(weatherId);
-                tempBigEl.textContent = !isNaN(temp) ? temp : '--';
-                feelsLikeEl.textContent = !isNaN(feelsLike) ? `${t('feels_like')} ${feelsLike}°` : '--';
-                humidityValueEl.textContent = humidity !== undefined ? `${humidity}%` : '--';
-                windValueEl.textContent = windSpeed !== undefined ? `${windSpeed} ${t('wind_unit')}` : '--';
-                pressureValueEl.textContent = pressure !== undefined ? `${pressure} ${t('pressure_unit')}` : '--';
-                visibilityValueEl.textContent = visibility !== undefined && visibility >= 0 ? (visibility >= 1000 ? `${(visibility / 1000).toFixed(1)} ${t('visibility_km')}` : `${visibility} ${t('visibility_m')}`) : '--';
-                sunriseTimeEl.textContent = sunrise ? formatTime(sunrise, timezoneOffset) : '--';
-                sunsetTimeEl.textContent = sunset ? formatTime(sunset, timezoneOffset) : '--';
-            }
-
-            function renderHourlyForecast(forecastList, timezoneOffset) {
-                const todayDateStr = getLocalDateString(timezoneOffset);
-                let todayForecasts = forecastList.filter(entry => getLocalDateStringFromUTC(entry.dt, timezoneOffset) === todayDateStr);
-                if (todayForecasts.length < 4 && forecastList.length > 0) {
-                    const nextDateStr = getLocalDateString(timezoneOffset, 1);
-                    const nextDay = forecastList.filter(entry => getLocalDateStringFromUTC(entry.dt, timezoneOffset) === nextDateStr);
-                    todayForecasts = [...todayForecasts, ...nextDay].slice(0, 8);
-                } else todayForecasts = todayForecasts.slice(0, 8);
-                if (todayForecasts.length === 0 && forecastList.length > 0) todayForecasts = forecastList.slice(0, 8);
-                const nowLocalHour = getLocalHour(timezoneOffset);
-                hourlyForecastEl.innerHTML = '';
-                todayForecasts.forEach((entry, index) => {
-                    const entryLocalHour = getLocalHourFromUTC(entry.dt, timezoneOffset);
-                    const isNow = (index === 0) || (entryLocalHour === nowLocalHour);
-                    const timeStr = formatTime24(entry.dt, timezoneOffset);
-                    const entryTemp = Math.round(entry.main?.temp);
-                    const entryHumidity = entry.main?.humidity;
-                    const entryWeatherId = entry.weather[0]?.id || 800;
-                    const card = document.createElement('div');
-                    card.className = 'hourly-card' + (isNow ? ' now' : '');
-                    card.innerHTML = `
-                        ${isNow ? `<span class="badge-now">${t('now_badge')}</span>` : ''}
-                        <div class="hourly-time">${timeStr}</div>
-                        <div class="hourly-icon">${getWeatherEmojiSimple(entryWeatherId)}</div>
-                        <div class="hourly-temp">${entryTemp}°</div>
-                        <div class="hourly-humidity">💧 ${entryHumidity}%</div>
-                    `;
-                    hourlyForecastEl.appendChild(card);
-                });
-                setTimeout(() => {
-                    const nowCard = hourlyForecastEl.querySelector('.hourly-card.now');
-                    if (nowCard) nowCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }, 300);
-            }
-
-            function getLocalDateString(timezoneOffset, dayOffset = 0) {
-                const now = new Date();
-                const localTimestamp = now.getTime() + (timezoneOffset * 1000) + (dayOffset * 86400000);
-                const localDate = new Date(localTimestamp);
-                const y = localDate.getUTCFullYear();
-                const m = String(localDate.getUTCMonth() + 1).padStart(2, '0');
-                const d = String(localDate.getUTCDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
-            function getLocalDateStringFromUTC(utcTimestamp, timezoneOffset) {
-                const localTimestamp = (utcTimestamp + timezoneOffset) * 1000;
-                const localDate = new Date(localTimestamp);
-                const y = localDate.getUTCFullYear();
-                const m = String(localDate.getUTCMonth() + 1).padStart(2, '0');
-                const d = String(localDate.getUTCDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
-            function getLocalHour(timezoneOffset) {
-                const now = new Date();
-                const localTimestamp = now.getTime() + (timezoneOffset * 1000);
-                return new Date(localTimestamp).getUTCHours();
-            }
-            function getLocalHourFromUTC(utcTimestamp, timezoneOffset) {
-                const localTimestamp = (utcTimestamp + timezoneOffset) * 1000;
-                return new Date(localTimestamp).getUTCHours();
-            }
-
-            // ============ Event Listeners ============
-            searchBtn.addEventListener('click', () => {
-                const query = searchInput.value.trim();
-                suggestionsDropdown.classList.remove('active');
-                currentSuggestions = [];
-                if (query.length > 0) {
-                    if (isCoordinates(query)) {
-                        const coords = parseCoordinates(query);
-                        if (coords) fetchWeatherByCoords(coords.lat, coords.lon, query);
-                        else showError('error_coords_invalid');
-                    } else fetchWeatherByCity(query);
-                } else {
-                    searchInput.focus();
-                    searchInput.style.borderColor = '#e74c3c';
-                    setTimeout(() => { searchInput.style.borderColor = '#ffffff'; }, 1200);
-                }
-            });
-
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (selectedSuggestionIndex >= 0 && currentSuggestions.length > 0) {
-                        selectSuggestion(selectedSuggestionIndex);
-                        return;
-                    }
-                    const query = searchInput.value.trim();
-                    suggestionsDropdown.classList.remove('active');
-                    currentSuggestions = [];
-                    if (query.length > 0) {
-                        if (isCoordinates(query)) {
-                            const coords = parseCoordinates(query);
-                            if (coords) fetchWeatherByCoords(coords.lat, coords.lon, query);
-                            else showError('error_coords_invalid');
-                        } else fetchWeatherByCity(query);
-                    }
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (currentSuggestions.length > 0) {
-                        selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, currentSuggestions.length - 1);
-                        updateSuggestionHighlight();
-                    }
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (currentSuggestions.length > 0) {
-                        selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, 0);
-                        updateSuggestionHighlight();
-                    }
-                } else if (e.key === 'Escape') {
-                    suggestionsDropdown.classList.remove('active');
-                    currentSuggestions = [];
-                    selectedSuggestionIndex = -1;
-                }
-            });
-
-            searchInput.addEventListener('input', () => {
-                const query = searchInput.value.trim();
-                if (isCoordinates(query)) {
-                    suggestionsDropdown.classList.remove('active');
-                    currentSuggestions = [];
-                    return;
-                }
-                if (suggestionTimeout) clearTimeout(suggestionTimeout);
-                if (query.length >= 2) suggestionTimeout = setTimeout(() => fetchSuggestions(query), 350);
-                else { suggestionsDropdown.classList.remove('active'); currentSuggestions = []; }
-            });
-
-            function updateSuggestionHighlight() {
-                const items = suggestionsDropdown.querySelectorAll('.suggestion-item');
-                items.forEach((item, index) => {
-                    if (index === selectedSuggestionIndex) { item.classList.add('selected'); item.scrollIntoView({ block: 'nearest' }); }
-                    else item.classList.remove('selected');
-                });
-            }
-
-            document.addEventListener('click', (e) => {
-                if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
-                    suggestionsDropdown.classList.remove('active');
-                    currentSuggestions = [];
-                }
-            });
-
-            locationBtn.addEventListener('click', () => {
-                suggestionsDropdown.classList.remove('active');
-                currentSuggestions = [];
-                if (navigator.geolocation) {
-                    showLoading();
-                    navigator.geolocation.getCurrentPosition(
-                        async (position) => {
-                            const lat = position.coords.latitude;
-                            const lon = position.coords.longitude;
-                            const locationName = await reverseGeocode(lat, lon);
-                            fetchWeatherByCoords(lat, lon, locationName);
-                        },
-                        (error) => {
-                            hideLoading();
-                            let errorKey = 'error_geolocation_general';
-                            if (error.code === error.PERMISSION_DENIED) errorKey = 'error_geolocation_denied';
-                            else if (error.code === error.TIMEOUT) errorKey = 'error_geolocation_timeout';
-                            showError(errorKey);
-                        }, { timeout: 10000, enableHighAccuracy: true }
-                    );
-                } else showError('error_geolocation_not_supported');
-            });
-
-            // ============ Anti-copy ============
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'u' || e.key === 's' || e.key === 'a')) {
-                    e.preventDefault();
-                    return false;
-                }
-                if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
-                    e.preventDefault();
-                    return false;
-                }
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-
-            document.addEventListener('copy', (e) => { e.preventDefault(); return false; });
-            document.addEventListener('cut', (e) => { e.preventDefault(); return false; });
-            document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
-
-            // ============ Particle Background ============
-            const canvas = document.getElementById('particleCanvas');
-            const ctx = canvas.getContext('2d');
-            let particles = [];
-            const maxParticles = 70;
-            const connectionDistance = 120;
-            const particleSpeed = 0.3;
-
-            function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-
-            class Particle {
-                constructor() {
-                    this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
-                    this.vx = (Math.random() - 0.5) * particleSpeed;
-                    this.vy = (Math.random() - 0.5) * particleSpeed;
-                    this.radius = Math.random() * 2 + 1;
-                }
-                update() {
-                    this.x += this.vx;
-                    this.y += this.vy;
-                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-                }
-                draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                    ctx.fill();
-                }
-            }
-            function initParticles() {
-                particles = [];
-                for (let i = 0; i < maxParticles; i++) particles.push(new Particle());
-            }
-            initParticles();
-
-            function drawLines() {
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dx = particles[i].x - particles[j].x;
-                        const dy = particles[i].y - particles[j].y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < connectionDistance) {
-                            ctx.beginPath();
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * (1 - dist / connectionDistance)})`;
-                            ctx.lineWidth = 0.7;
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach(p => { p.update(); p.draw(); });
-                drawLines();
-                requestAnimationFrame(animate);
-            }
-            animate();
-
-            // ============ Initial ============
-            hideLoading();
-            hideError();
-            weatherContainer.classList.remove('active');
-            updateLanguageUI();
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        const locationName = await reverseGeocode(lat, lon);
-                        fetchWeatherByCoords(lat, lon, locationName);
-                    },
-                    () => {}, { timeout: 6000, enableHighAccuracy: false }
-                );
-            }
-        })();
-    </script>
 </body>
 </html>
